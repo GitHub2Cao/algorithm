@@ -4,17 +4,23 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class EventStorage {
 	private int maxSize;
 	private List<Date> storage;
+	private Lock lock = new ReentrantLock();
+	Condition condition = lock.newCondition();
 	
 	public EventStorage() {
 		maxSize = 10;
 		storage = new ArrayList<>();
 	}
 	
-	public synchronized void set() {
+	public void set() {
+		lock.unlock();
 		while (storage.size() == maxSize) {
 			try {
 				wait();
@@ -32,7 +38,7 @@ public class EventStorage {
 		notifyAll();
 	}
 	
-	public synchronized void get() {
+	public void get() {
 		while (storage.size() == 0) {
 			try {
 				wait();
